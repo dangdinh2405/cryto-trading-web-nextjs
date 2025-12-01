@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# README - Next.js Migration
 
-## Getting Started
+## Giới thiệu
 
-First, run the development server:
+Dự án **Crypto Trading Platform** đã được migrate từ React + Vite sang **Next.js 16** với App Router.
+
+## Cấu trúc dự án
+
+```
+cryto-trading-web-nextjs/
+├── app/                    # Next.js App Router
+│   ├── layout.tsx         # Root layout với providers
+│   ├── page.tsx           # Home (redirect to dashboard)
+│   ├── login/
+│   │   └── page.tsx       # Login page
+│   ├── register/
+│   │   └── page.tsx       # Register page
+│   └── dashboard/
+│       └── page.tsx       # Protected dashboard
+├── components/            # React components (68 files)
+│   ├── ui/               # Radix UI wrappers
+│   ├── AuthContext.tsx
+│   ├── Dashboard.tsx
+│   ├── TradingPanel.tsx
+│   └── ...
+├── contexts/             # React contexts
+│   └── MarketContext.tsx
+├── hooks/                # Custom hooks
+│   ├── useOrderbook.ts
+│   └── useMarketPrices.ts
+├── lib/                  # Utility functions
+│   ├── api.ts
+│   └── utils.ts
+├── public/               # Static assets
+├── package.json
+├── tsconfig.json
+└── next.config.ts
+```
+
+## Cài đặt
+
+```bash
+cd cryto-trading-web-nextjs
+npm install
+```
+
+## Environment Variables
+
+Tạo `.env.local`:
+
+```env
+NEXT_PUBLIC_AAPI_URL=http://localhost:8080
+NEXT_PUBLIC_WS_URL=ws://localhost:8080
+```
+
+## Chạy Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mở [http://localhost:3001](http://localhost:3001)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## Tech Stack
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework**: Next.js 16.0.5 (App Router)
+- **UI Library**: React 19.2.0
+- **Styling**: TailwindCSS 4.0
+- **Components**: Radix UI
+- **Charts**: Lightweight Charts, Recharts
+- **Backend API**: Go (separate service)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- ✅ Server-side rendering (SSR)
+- ✅ File-based routing
+- ✅ Dark mode default
+- ✅ Protected routes
+- ✅ Real-time market data (WebSocket)
+- ✅ Trading panel
+- ✅ Order book
+- ✅ Authentication
 
-## Deploy on Vercel
+## Migration Notes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Xem [walkthrough.md](file:///../.gemini/antigravity/brain/f6189550-2cc3-4959-8b6a-59d730e16b44/walkthrough.md) để biết chi tiết về quá trình migration.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Các thay đổi chính:
+
+1. **Routing**: `react-router-dom` → Next.js App Router
+2. **Navigation**: `useNavigate()` → `useRouter()` from `next/navigation`
+3. **Import paths**: Relative imports → `@/*` alias
+4. **Client Components**: Thêm `'use client'` directive
+5. **Port**: 3000 → 3001
+
+## License
+
+Private
