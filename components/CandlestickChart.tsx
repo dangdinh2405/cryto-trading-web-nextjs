@@ -1,8 +1,7 @@
-'use client';
-
 import { useEffect, useRef, useState } from 'react';
 import { createChart } from 'lightweight-charts';
 import { useMarketPrices } from '@/hooks/useMarketPrices';
+import { aggregateCandle, Candle } from '@/lib/candleAggregation';
 
 declare global {
   interface Window {
@@ -84,6 +83,9 @@ export function CandlestickChart({ symbol, timeframe }: CandlestickChartProps) {
   const isFetchingMoreRef = useRef(false);
   const oldestTimeRef = useRef<number | null>(null);
 
+  // Track aggregated candles for WebSocket updates
+  const aggregatedCandlesRef = useRef<Candle[]>([]);
+
   const [isLibraryLoaded, setIsLibraryLoaded] = useState(false);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [prevPrice, setPrevPrice] = useState<number>(0);
@@ -144,7 +146,9 @@ export function CandlestickChart({ symbol, timeframe }: CandlestickChartProps) {
         });
 
         // Data is already sorted ascending by time from fetchCandles
+        // Backend now handles aggregation, so this is already in correct timeframe
         candleSeries.setData(history);
+        aggregatedCandlesRef.current = history; // Store for WebSocket updates
 
         if (history.length > 0) {
           const first = history[0];
@@ -182,6 +186,7 @@ export function CandlestickChart({ symbol, timeframe }: CandlestickChartProps) {
             const currentData = candleSeries.data() as BarData[];
             const merged = [...more, ...currentData];
             candleSeries.setData(merged);
+            aggregatedCandlesRef.current = merged;
 
             oldestTimeRef.current = more[0].time;
           }
@@ -220,11 +225,12 @@ export function CandlestickChart({ symbol, timeframe }: CandlestickChartProps) {
     };
   }, [isLibraryLoaded, symbol, subscribe, unsubscribe]);
 
-  // Update chart when price data arrives
+  // Update chart when price data arrives (aggregate 1m → timeframe)
   useEffect(() => {
     if (!symbolPrice || !candleSeriesRef.current) return;
 
-    const bar: BarData = {
+    // WebSocket sends 1m candles
+    const candle1m: Candle = {
       time: Math.floor(new Date(symbolPrice.open_time).getTime() / 1000),
       open: symbolPrice.open,
       high: symbolPrice.high,
@@ -233,13 +239,21 @@ export function CandlestickChart({ symbol, timeframe }: CandlestickChartProps) {
       volume: symbolPrice.volume
     };
 
-    candleSeriesRef.current.update(bar);
+    // Aggregate into target timeframe
+    const updated = aggregateCandle(candle1m, timeframe, [...aggregatedCandlesRef.current]);
+    aggregatedCandlesRef.current = updated;
 
-    setCurrentPrice((prev) => {
-      setPrevPrice(prev);
-      return bar.close;
-    });
-  }, [symbolPrice]);
+    // Update the chart with aggregated data
+    const lastCandle = updated[updated.length - 1];
+    if (lastCandle) {
+      candleSeriesRef.current.update(lastCandle);
+
+      setCurrentPrice((prev) => {
+        setPrevPrice(prev);
+        return lastCandle.close;
+      });
+    }
+  }, [symbolPrice, timeframe]);
 
   return (
     <div className="relative h-full w-full">

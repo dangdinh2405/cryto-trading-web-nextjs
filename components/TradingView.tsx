@@ -67,24 +67,6 @@ export function TradingView({ selectedSymbol, onSymbolChange }: TradingViewProps
                 {isPositive ? '+' : ''}{change24h.toFixed(2)}%
               </p>
             </div>
-
-            {/* 24h High */}
-            <div>
-              <p className="text-sm text-muted-foreground">24h High</p>
-              <p>${currentMarketPrice?.high.toLocaleString() || 0}</p>
-            </div>
-
-            {/* 24h Low */}
-            <div>
-              <p className="text-sm text-muted-foreground">24h Low</p>
-              <p>${currentMarketPrice?.low.toLocaleString() || 0}</p>
-            </div>
-
-            {/* 24h Volume */}
-            <div>
-              <p className="text-sm text-muted-foreground">24h Volume</p>
-              <p>${(currentMarketPrice?.volume / 1000 || 0).toFixed(2)}K</p>
-            </div>
           </div>
         </div>
 

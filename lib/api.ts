@@ -1,5 +1,3 @@
-import { projectId, publicAnonKey } from './supabase/info';
-
 const API_BASE_URL = `http://localhost:5001`;
 
 export interface ApiResponse<T = any> {
@@ -66,8 +64,6 @@ class ApiClient {
     // Add authorization header if token exists
     if (this.accessToken && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register')) {
       headers['Authorization'] = `Bearer ${this.accessToken}`;
-    } else if (!endpoint.includes('/auth/')) {
-      headers['Authorization'] = `Bearer ${publicAnonKey}`;
     }
 
     try {
