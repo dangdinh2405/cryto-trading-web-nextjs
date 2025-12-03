@@ -181,10 +181,6 @@ class ApiClient {
     return this.request('/user/balance');
   }
 
-  async resetBalance() {
-    return this.request('/user/balance/reset', { method: 'POST' });
-  }
-
   async getLoginActivity() {
     return this.request('/user/login-activity');
   }

@@ -27,6 +27,11 @@ export function OrdersView() {
       api.getTradeHistory(),
     ]);
 
+    console.log('Open Orders Response:', openRes);
+    console.log('History Response:', historyRes);
+    console.log('Trades Response:', tradesRes);
+
+    // Backend returns array directly in { data: [...] }
     if (openRes.data) setOpenOrders(openRes.data);
     if (historyRes.data) setOrderHistory(historyRes.data);
     if (tradesRes.data) setTradeHistory(tradesRes.data);
@@ -45,8 +50,20 @@ export function OrdersView() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
+  const formatDate = (dateInput: any) => {
+    if (!dateInput) return 'N/A';
+
+    // Handle sql.NullTime from Go backend { Time: "2024-...", Valid: true }
+    if (typeof dateInput === 'object' && dateInput.Time) {
+      return new Date(dateInput.Time).toLocaleString();
+    }
+
+    // Handle ISO string
+    if (typeof dateInput === 'string') {
+      return new Date(dateInput).toLocaleString();
+    }
+
+    return 'Invalid Date';
   };
 
   if (loading) {
@@ -85,33 +102,37 @@ export function OrdersView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {openOrders.map((order) => (
-                        <tr key={order.orderId} className="border-b">
-                          <td className="py-3 text-sm">{formatDate(order.createdAt)}</td>
-                          <td>{order.symbol}/USDT</td>
-                          <td className="capitalize">{order.type}</td>
-                          <td className={order.side === 'buy' ? 'text-green-500' : 'text-red-500'}>
-                            {order.side.toUpperCase()}
-                          </td>
-                          <td className="text-right">${order.price.toFixed(2)}</td>
-                          <td className="text-right">{order.amount.toFixed(8)}</td>
-                          <td className="text-right">{order.filled.toFixed(8)}</td>
-                          <td>
-                            <span className="inline-block px-2 py-1 rounded text-xs bg-yellow-500/20 text-yellow-500">
-                              {order.status}
-                            </span>
-                          </td>
-                          <td className="text-right">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelOrder(order.orderId)}
-                            >
-                              <X className="size-4" />
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
+                      {openOrders.map((order) => {
+                        // Support both 'id' (Go backend) and 'orderId' (camelCase)
+                        const orderId = order.id || order.orderId;
+                        return (
+                          <tr key={orderId} className="border-b">
+                            <td className="py-3 text-sm">{formatDate(order.createdAt)}</td>
+                            <td>{order.symbol}</td>
+                            <td className="capitalize">{order.type}</td>
+                            <td className={order.side === 'buy' ? 'text-green-500' : 'text-red-500'}>
+                              {order.side.toUpperCase()}
+                            </td>
+                            <td className="text-right">${order.price ? order.price.toFixed(2) : 'Market'}</td>
+                            <td className="text-right">{order.amount ? order.amount.toFixed(8) : 'N/A'}</td>
+                            <td className="text-right">{order.filled ? order.filled.toFixed(8) : '0.00000000'}</td>
+                            <td>
+                              <span className="inline-block px-2 py-1 rounded text-xs bg-yellow-500/20 text-yellow-500">
+                                {order.status}
+                              </span>
+                            </td>
+                            <td className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCancelOrder(orderId)}
+                              >
+                                <X className="size-4" />
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -145,30 +166,34 @@ export function OrdersView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {orderHistory.map((order) => (
-                        <tr key={order.orderId} className="border-b">
-                          <td className="py-3 text-sm">{formatDate(order.createdAt)}</td>
-                          <td>{order.symbol}/USDT</td>
-                          <td className="capitalize">{order.type}</td>
-                          <td className={order.side === 'buy' ? 'text-green-500' : 'text-red-500'}>
-                            {order.side.toUpperCase()}
-                          </td>
-                          <td className="text-right">${order.price.toFixed(2)}</td>
-                          <td className="text-right">{order.amount.toFixed(8)}</td>
-                          <td className="text-right">{order.filled.toFixed(8)}</td>
-                          <td className="text-right">${order.fee.toFixed(2)}</td>
-                          <td>
-                            <span className={`inline-block px-2 py-1 rounded text-xs ${order.status === 'filled'
+                      {orderHistory.map((order) => {
+                        // Support both 'id' (Go backend) and 'orderId' (camelCase)
+                        const orderId = order.id || order.orderId;
+                        return (
+                          <tr key={orderId} className="border-b">
+                            <td className="py-3 text-sm">{formatDate(order.createdAt)}</td>
+                            <td>{order.symbol}</td>
+                            <td className="capitalize">{order.type}</td>
+                            <td className={order.side === 'buy' ? 'text-green-500' : 'text-red-500'}>
+                              {order.side.toUpperCase()}
+                            </td>
+                            <td className="text-right">${order.price ? order.price.toFixed(2) : 'Market'}</td>
+                            <td className="text-right">{order.amount ? order.amount.toFixed(8) : 'N/A'}</td>
+                            <td className="text-right">{order.filled ? order.filled.toFixed(8) : '0.00000000'}</td>
+                            <td className="text-right">${order.fee ? order.fee.toFixed(2) : '0.00'}</td>
+                            <td>
+                              <span className={`inline-block px-2 py-1 rounded text-xs ${order.status === 'filled'
                                 ? 'bg-green-500/20 text-green-500'
                                 : order.status === 'canceled'
                                   ? 'bg-red-500/20 text-red-500'
                                   : 'bg-yellow-500/20 text-yellow-500'
-                              }`}>
-                              {order.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                                }`}>
+                                {order.status}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -200,20 +225,28 @@ export function OrdersView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {tradeHistory.map((trade) => {
-                        const total = trade.price * trade.amount;
+                      {tradeHistory.map((trade, index) => {
+                        // Support both camelCase (mock) and PascalCase (Go backend)
+                        const tradeId = trade.tradeId || trade.ID;
+                        const symbol = trade.symbol || trade.Symbol;
+                        const side = trade.side || trade.Side;
+                        const price = trade.price || trade.Price || 0;
+                        const amount = trade.amount || trade.Amount || 0;
+                        const fee = trade.fee || trade.Fee || 0;
+                        const timestamp = trade.timestamp || trade.TradeTime;
+                        const total = price * amount;
 
                         return (
-                          <tr key={trade.tradeId} className="border-b">
-                            <td className="py-3 text-sm">{formatDate(trade.timestamp)}</td>
-                            <td>{trade.symbol}/USDT</td>
-                            <td className={trade.side === 'buy' ? 'text-green-500' : 'text-red-500'}>
-                              {trade.side.toUpperCase()}
+                          <tr key={tradeId || `trade-${index}`} className="border-b">
+                            <td className="py-3 text-sm">{formatDate(timestamp)}</td>
+                            <td>{symbol}</td>
+                            <td className={side === 'buy' ? 'text-green-500' : 'text-red-500'}>
+                              {side?.toUpperCase() || 'N/A'}
                             </td>
-                            <td className="text-right">${trade.price.toFixed(2)}</td>
-                            <td className="text-right">{trade.amount.toFixed(8)}</td>
+                            <td className="text-right">${price.toFixed(2)}</td>
+                            <td className="text-right">{amount.toFixed(8)}</td>
                             <td className="text-right">${total.toFixed(2)}</td>
-                            <td className="text-right">${trade.fee.toFixed(2)}</td>
+                            <td className="text-right">${fee.toFixed(2)}</td>
                           </tr>
                         );
                       })}

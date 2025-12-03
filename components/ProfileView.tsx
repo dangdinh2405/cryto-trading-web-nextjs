@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from './AuthContext';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
-import { User, Mail, Phone, Calendar, RefreshCw, Activity } from 'lucide-react';
+import { User, Mail, Phone, Calendar, Activity } from 'lucide-react';
 
 export function ProfileView() {
   const { user, refreshUser } = useAuth();
@@ -17,7 +17,6 @@ export function ProfileView() {
   const [avatar, setAvatar] = useState('');
   const [loginActivity, setLoginActivity] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [canReset, setCanReset] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -50,22 +49,7 @@ export function ProfileView() {
     setIsLoading(false);
   };
 
-  const handleResetBalance = async () => {
-    setIsLoading(true);
 
-    const response = await api.resetBalance();
-
-    if (response.error) {
-      toast.error(response.error);
-      if (response.error.includes('once per day')) {
-        setCanReset(false);
-      }
-    } else {
-      toast.success('Balance reset successfully to 10,000 USDT');
-    }
-
-    setIsLoading(false);
-  };
 
   const getInitials = () => {
     if (!username) return 'U';
@@ -171,31 +155,6 @@ export function ProfileView() {
 
         {/* Right Column */}
         <div className="space-y-6">
-          {/* Demo Account Controls */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Demo Account</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-3 bg-secondary rounded">
-                <p className="text-sm text-muted-foreground mb-2">Virtual Balance</p>
-                <p className="text-xs text-muted-foreground">
-                  Reset your demo account balance to 10,000 USDT. Can be done once per day.
-                </p>
-              </div>
-
-              <Button
-                onClick={handleResetBalance}
-                disabled={isLoading || !canReset}
-                variant="outline"
-                className="w-full"
-              >
-                <RefreshCw className="size-4 mr-2" />
-                Reset Balance
-              </Button>
-            </CardContent>
-          </Card>
-
           {/* Login Activity */}
           <Card>
             <CardHeader>
@@ -211,10 +170,10 @@ export function ProfileView() {
                     <div key={index} className="border-b pb-3 last:border-0">
                       <p className="text-sm">{formatDate(activity.timestamp)}</p>
                       <p className="text-xs text-muted-foreground">
-                        IP: {activity.ip.substring(0, 20)}
+                        IP: {activity.ip?.substring(0, 20) || 'N/A'}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {activity.device.substring(0, 50)}
+                        {activity.device?.substring(0, 50) || 'N/A'}
                       </p>
                     </div>
                   ))

@@ -5,6 +5,12 @@ import { useState } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { TradingView } from './TradingView';
+import { PortfolioView } from './PortfolioView';
+import { OrdersView } from './OrdersView';
+import { WatchlistView } from './WatchlistView';
+import { ProfileView } from './ProfileView';
+import { SettingsView } from './SettingsView';
+import { AdminPanel } from './AdminPanel';
 
 type View = 'trading' | 'portfolio' | 'orders' | 'watchlist' | 'profile' | 'settings' | 'admin';
 
@@ -16,6 +22,21 @@ export function Dashboard() {
     switch (currentView) {
       case 'trading':
         return <TradingView selectedSymbol={selectedSymbol} onSymbolChange={setSelectedSymbol} />;
+      case 'portfolio':
+        return <PortfolioView />;
+      case 'orders':
+        return <OrdersView />;
+      case 'watchlist':
+        return <WatchlistView onSelectSymbol={(symbol) => {
+          setSelectedSymbol(symbol);
+          setCurrentView('trading');
+        }} />;
+      case 'profile':
+        return <ProfileView />;
+      case 'settings':
+        return <SettingsView />;
+      case 'admin':
+        return <AdminPanel />;
       default:
         return <TradingView selectedSymbol={selectedSymbol} onSymbolChange={setSelectedSymbol} />;
     }
