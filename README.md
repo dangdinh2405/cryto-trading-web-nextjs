@@ -6,6 +6,8 @@ A modern, real-time cryptocurrency trading platform built with **Next.js 16** an
 ![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.0-06B6D4?logo=tailwindcss)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript)
+## Demo
+![](image/1.png)
 
 ## ✨ Features
 
